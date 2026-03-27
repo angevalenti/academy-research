@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
+  :root, [data-theme="dark"] {
     --bg-primary: #0a0c10;
     --bg-secondary: #12151c;
     --bg-card: #181c26;
@@ -27,6 +27,38 @@
     --text-dim: #555568;
     --border: rgba(255,255,255,0.06);
     --border-light: rgba(255,255,255,0.1);
+    --chart-grid: rgba(255,255,255,0.04);
+    --chart-text: #888898;
+    --noise-opacity: 0.03;
+    --toggle-bg: var(--bg-secondary);
+    --schedule-block-text: var(--bg-primary);
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #f4f3f0;
+    --bg-secondary: #eae8e4;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8f7f5;
+    --accent-amber: #c78a1e;
+    --accent-amber-dim: rgba(199, 138, 30, 0.12);
+    --accent-teal: #1a9e88;
+    --accent-teal-dim: rgba(26, 158, 136, 0.1);
+    --accent-rose: #c83858;
+    --accent-rose-dim: rgba(200, 56, 88, 0.1);
+    --accent-blue: #2e6cc8;
+    --accent-blue-dim: rgba(46, 108, 200, 0.1);
+    --accent-violet: #7048c8;
+    --accent-violet-dim: rgba(112, 72, 200, 0.1);
+    --text-primary: #1a1a2e;
+    --text-secondary: #555568;
+    --text-dim: #8888a0;
+    --border: rgba(0,0,0,0.08);
+    --border-light: rgba(0,0,0,0.12);
+    --chart-grid: rgba(0,0,0,0.06);
+    --chart-text: #555568;
+    --noise-opacity: 0.015;
+    --toggle-bg: var(--bg-secondary);
+    --schedule-block-text: #ffffff;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,6 +69,86 @@
     font-family: 'DM Sans', sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
+  }
+
+  /* Theme Toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 24px;
+    right: 28px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 40px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  .theme-toggle:hover { border-color: var(--accent-amber); }
+
+  .toggle-track {
+    width: 44px; height: 24px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    position: relative;
+    transition: all 0.35s ease;
+  }
+
+  .toggle-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent-amber);
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: all 0.35s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  [data-theme="light"] .toggle-thumb { left: 22px; }
+
+  .toggle-label {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    user-select: none;
+    min-width: 38px;
+  }
+
+  .toggle-icon { font-size: 16px; line-height: 1; }
+
+  /* Light mode card shadow */
+  [data-theme="light"] .chart-card,
+  [data-theme="light"] .school-card,
+  [data-theme="light"] .method-card,
+  [data-theme="light"] .reg-card,
+  [data-theme="light"] .metric-card,
+  [data-theme="light"] .comp-table-wrap,
+  [data-theme="light"] .schedule-row {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  [data-theme="light"] .school-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+
+  [data-theme="light"] .noise-overlay { opacity: 0.5; }
+
+  [data-theme="light"] .header h1,
+  [data-theme="light"] h1 {
+    background: linear-gradient(135deg, #1a1a2e 0%, #555568 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  [data-theme="light"] .theme-toggle {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   }
 
   .noise-overlay {
@@ -51,7 +163,6 @@
     padding: 40px 32px;
   }
 
-  /* Header */
   .header {
     text-align: center;
     margin-bottom: 56px;
@@ -98,29 +209,33 @@
     font-weight: 300;
   }
 
-  /* Navigation Tabs */
+  /* Navigation — two rows */
+  .nav-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 48px;
+  }
+
   .nav-tabs {
     display: flex;
     justify-content: center;
     gap: 4px;
-    margin-bottom: 48px;
     background: var(--bg-secondary);
     padding: 4px;
     border-radius: 12px;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
     border: 1px solid var(--border);
   }
 
   .nav-tab {
-    padding: 10px 22px;
+    padding: 10px 18px;
     border-radius: 8px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -134,7 +249,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
-  /* Sections */
   .section { display: none; animation: fadeIn 0.4s ease; }
   .section.active { display: block; }
 
@@ -143,7 +257,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Section Titles */
   .section-title {
     font-family: 'DM Serif Display', serif;
     font-size: 28px;
@@ -158,7 +271,6 @@
     font-weight: 300;
   }
 
-  /* Radar/Comparison Charts Grid */
   .charts-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -197,26 +309,13 @@
     font-weight: 400;
   }
 
-  .chart-container {
-    position: relative;
-    height: 280px;
-  }
+  .chart-container { position: relative; height: 280px; }
 
-  .chart-card.full-width {
-    grid-column: 1 / -1;
-  }
+  .chart-card.full-width { grid-column: 1 / -1; }
+  .chart-card.full-width .chart-container { height: 360px; }
 
-  .chart-card.full-width .chart-container {
-    height: 360px;
-  }
-
-  /* School Cards */
-  .school-cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    margin-bottom: 48px;
-  }
+  /* School Cards (Pros/Cons) */
+  .school-cards { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 48px; }
 
   .school-card {
     background: var(--bg-card);
@@ -280,22 +379,10 @@
 
   .school-card.expanded .expand-toggle { transform: rotate(180deg); }
 
-  .school-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease;
-  }
+  .school-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+  .school-card.expanded .school-body { max-height: 2000px; }
 
-  .school-card.expanded .school-body {
-    max-height: 2000px;
-  }
-
-  .pros-cons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    padding: 0 28px 28px;
-  }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 28px 28px; }
 
   .pros-col h4, .cons-col h4 {
     font-size: 11px;
@@ -309,32 +396,14 @@
   .pros-col h4 { color: var(--accent-teal); }
   .cons-col h4 { color: var(--accent-rose); }
 
-  .pc-item {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-secondary);
-  }
+  .pc-item { display: flex; gap: 10px; margin-bottom: 12px; font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
 
-  .pc-item .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 7px;
-  }
-
+  .pc-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
   .pros-col .dot { background: var(--accent-teal); }
   .cons-col .dot { background: var(--accent-rose); }
 
-  /* Key Metrics Bar */
-  .metrics-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 48px;
-  }
+  /* Metrics */
+  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
 
   .metric-card {
     background: var(--bg-card);
@@ -360,11 +429,7 @@
   }
 
   /* Feature Matrix */
-  .matrix-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 48px;
-  }
+  .matrix-table { width: 100%; border-collapse: collapse; margin-bottom: 48px; }
 
   .matrix-table th, .matrix-table td {
     padding: 14px 16px;
@@ -384,48 +449,20 @@
   }
 
   .matrix-table th:first-child { text-align: left; }
-  .matrix-table td:first-child {
-    text-align: left;
-    color: var(--text-secondary);
-    font-weight: 500;
-  }
-
+  .matrix-table td:first-child { text-align: left; color: var(--text-secondary); font-weight: 500; }
   .matrix-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-  .dot-indicator {
-    display: inline-block;
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-
+  .dot-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
   .dot-indicator.strong { background: var(--accent-teal); box-shadow: 0 0 8px rgba(56, 200, 176, 0.3); }
   .dot-indicator.moderate { background: var(--accent-amber); box-shadow: 0 0 8px rgba(232, 168, 56, 0.3); }
   .dot-indicator.weak { background: var(--accent-rose); opacity: 0.6; }
   .dot-indicator.none { background: var(--text-dim); opacity: 0.3; }
 
-  .matrix-legend {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    margin-top: 16px;
-    margin-bottom: 48px;
-  }
+  .matrix-legend { display: flex; gap: 24px; justify-content: center; margin-top: 16px; margin-bottom: 48px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
 
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-
-  /* Your Model Section */
-  .your-model-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 48px;
-  }
+  /* Pillar Cards (Blueprint) */
+  .your-model-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 48px; }
 
   .pillar-card {
     background: var(--bg-card);
@@ -436,67 +473,219 @@
     overflow: hidden;
   }
 
-  .pillar-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-
+  .pillar-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
   .pillar-card.core::before { background: linear-gradient(90deg, var(--accent-blue), var(--accent-violet)); }
   .pillar-card.studio::before { background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose)); }
   .pillar-card.human::before { background: linear-gradient(90deg, var(--accent-teal), var(--accent-blue)); }
 
-  .pillar-card h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    margin-bottom: 6px;
-    font-weight: 400;
-  }
+  .pillar-card h3 { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 6px; font-weight: 400; }
 
   .pillar-card .pillar-sub {
-    font-size: 11px;
-    color: var(--text-dim);
+    font-size: 11px; color: var(--text-dim);
     font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 16px;
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px;
   }
 
-  .model-tag {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 500;
-    margin: 3px 4px 3px 0;
-  }
-
+  .model-tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; margin: 3px 4px 3px 0; }
   .model-tag.mastery { background: var(--accent-blue-dim); color: var(--accent-blue); }
   .model-tag.adaptive { background: var(--accent-violet-dim); color: var(--accent-violet); }
   .model-tag.pbl { background: var(--accent-rose-dim); color: var(--accent-rose); }
   .model-tag.learner { background: var(--accent-teal-dim); color: var(--accent-teal); }
   .model-tag.socratic { background: var(--accent-amber-dim); color: var(--accent-amber); }
 
-  .pillar-items {
-    margin-top: 16px;
+  .pillar-items { margin-top: 16px; }
+  .pillar-items li {
+    list-style: none; font-size: 13px; color: var(--text-secondary);
+    padding: 6px 0; padding-left: 16px; position: relative;
+  }
+  .pillar-items li::before { content: '›'; position: absolute; left: 0; color: var(--text-dim); }
+
+  /* ====== DAILY SCHEDULE ====== */
+  .schedule-grid { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 48px; }
+
+  .schedule-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 24px;
+    align-items: start;
   }
 
-  .pillar-items li {
-    list-style: none;
-    font-size: 13px;
-    color: var(--text-secondary);
-    padding: 6px 0;
-    padding-left: 16px;
+  .schedule-school-label h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px; font-weight: 400; margin-bottom: 4px;
+  }
+  .schedule-school-label .sch-tag {
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .timeline { display: flex; gap: 3px; border-radius: 8px; overflow: hidden; height: 54px; }
+
+  .time-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--bg-primary);
+    padding: 4px 2px;
+    min-width: 0;
+    overflow: hidden;
     position: relative;
   }
 
-  .pillar-items li::before {
-    content: '›';
-    position: absolute;
-    left: 0;
-    color: var(--text-dim);
+  .time-block .block-label { font-size: 10px; font-weight: 600; line-height: 1.2; text-align: center; }
+  .time-block .block-time { font-size: 9px; opacity: 0.75; font-family: 'JetBrains Mono', monospace; }
+
+  .timeline-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+  .tl-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+  .tl-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* ====== METHODOLOGY CARDS ====== */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 48px; }
+
+  .method-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
   }
+
+  .method-card:hover { border-color: var(--border-light); transform: translateY(-2px); }
+
+  .method-card .method-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    position: absolute;
+    top: 16px; right: 24px;
+    opacity: 0.06;
+    line-height: 1;
+  }
+
+  .method-card .method-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .method-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; font-weight: 400; margin-bottom: 8px;
+  }
+
+  .method-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  .method-card .used-by {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .method-card .used-by span { color: var(--text-secondary); }
+
+  /* ====== PA REGULATIONS ====== */
+  .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 48px; }
+
+  .reg-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .reg-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px; font-weight: 400; margin-bottom: 6px;
+  }
+
+  .reg-card .reg-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .reg-card .reg-status.pending { background: var(--accent-amber-dim); color: var(--accent-amber); }
+  .reg-card .reg-status.researched { background: var(--accent-teal-dim); color: var(--accent-teal); }
+  .reg-card .reg-status.not-started { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+  .reg-items { list-style: none; }
+  .reg-items li {
+    font-size: 13px; color: var(--text-secondary);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .reg-items li:last-child { border-bottom: none; }
+  .reg-items li .check { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .reg-items li .check.done { color: var(--accent-teal); }
+  .reg-items li .check.todo { color: var(--text-dim); }
+
+  /* ====== COMPETITIVE LANDSCAPE ====== */
+  .comp-table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 48px;
+    overflow-x: auto;
+  }
+
+  .comp-table { width: 100%; border-collapse: collapse; }
+  .comp-table th, .comp-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .comp-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-dim);
+    font-weight: 500; padding-bottom: 16px;
+  }
+  .comp-table td { color: var(--text-secondary); }
+  .comp-table td:first-child { color: var(--text-primary); font-weight: 500; }
+  .comp-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .comp-table tr:last-child td { border-bottom: none; }
+
+  .comp-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .comp-badge.direct { background: var(--accent-rose-dim); color: var(--accent-rose); }
+  .comp-badge.indirect { background: var(--accent-amber-dim); color: var(--accent-amber); }
+  .comp-badge.aspirational { background: var(--accent-teal-dim); color: var(--accent-teal); }
+
+  .comp-note {
+    margin-top: 20px; padding: 16px 20px;
+    background: var(--accent-amber-dim);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent-amber);
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .comp-note strong { color: var(--accent-amber); }
 
   /* Footer */
   .footer {
@@ -513,17 +702,24 @@
   }
 
   @media (max-width: 900px) {
-    .charts-grid { grid-template-columns: 1fr; }
+    .charts-grid, .method-grid, .reg-grid { grid-template-columns: 1fr; }
     .pros-cons { grid-template-columns: 1fr; }
     .metrics-row { grid-template-columns: repeat(2, 1fr); }
     .your-model-grid { grid-template-columns: 1fr; }
-    .nav-tabs { flex-wrap: wrap; width: 90%; }
+    .nav-tabs { flex-wrap: wrap; }
     h1 { font-size: 30px; }
+    .schedule-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
-<body>
+<body data-theme="dark">
 <div class="noise-overlay"></div>
+
+<div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+  <span class="toggle-icon" id="themeIcon">☾</span>
+  <div class="toggle-track"><div class="toggle-thumb"></div></div>
+  <span class="toggle-label" id="themeLabel">Dark</span>
+</div>
 
 <div class="container">
   <div class="header">
@@ -532,15 +728,26 @@
     <p class="header-sub">Analyzing innovative school models to inform curriculum design for a privatized individualized educational academy, grades 6–12</p>
   </div>
 
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showSection('overview')">Overview</button>
-    <button class="nav-tab" onclick="showSection('comparison')">Model Comparison</button>
-    <button class="nav-tab" onclick="showSection('proscons')">Pros & Cons</button>
-    <button class="nav-tab" onclick="showSection('features')">Feature Matrix</button>
-    <button class="nav-tab" onclick="showSection('blueprint')">Your Blueprint</button>
+  <!-- NAVIGATION — TWO ROWS -->
+  <div class="nav-wrapper">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('overview', this)">Overview</button>
+      <button class="nav-tab" onclick="showSection('comparison', this)">Comparison</button>
+      <button class="nav-tab" onclick="showSection('proscons', this)">Pros & Cons</button>
+      <button class="nav-tab" onclick="showSection('features', this)">Feature Matrix</button>
+      <button class="nav-tab" onclick="showSection('blueprint', this)">Blueprint</button>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" onclick="showSection('schedule', this)">Daily Schedules</button>
+      <button class="nav-tab" onclick="showSection('methods', this)">Methodologies</button>
+      <button class="nav-tab" onclick="showSection('regulations', this)">PA Regulations</button>
+      <button class="nav-tab" onclick="showSection('landscape', this)">Competitive Landscape</button>
+    </div>
   </div>
 
+  <!-- ============================================================ -->
   <!-- OVERVIEW SECTION -->
+  <!-- ============================================================ -->
   <div class="section active" id="overview">
     <div class="metrics-row">
       <div class="metric-card">
@@ -565,28 +772,24 @@
       <div class="chart-card">
         <h3>Student Agency vs. Structure</h3>
         <p class="chart-subtitle">How much control students have over their learning path</p>
-        <div class="chart-container">
-          <canvas id="agencyChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="agencyChart"></canvas></div>
       </div>
       <div class="chart-card">
         <h3>Technology Integration</h3>
         <p class="chart-subtitle">Role of technology in the learning experience</p>
-        <div class="chart-container">
-          <canvas id="techChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="techChart"></canvas></div>
       </div>
       <div class="chart-card full-width">
         <h3>Core Philosophy Breakdown</h3>
         <p class="chart-subtitle">How each model allocates emphasis across key educational dimensions</p>
-        <div class="chart-container">
-          <canvas id="radarChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="radarChart"></canvas></div>
       </div>
     </div>
   </div>
 
+  <!-- ============================================================ -->
   <!-- COMPARISON SECTION -->
+  <!-- ============================================================ -->
   <div class="section" id="comparison">
     <div class="section-title">Side-by-Side Comparison</div>
     <p class="section-desc">Rating each model across dimensions critical to your academy vision (1–10 scale)</p>
@@ -595,56 +798,42 @@
       <div class="chart-card full-width">
         <h3>Model Strengths by Dimension</h3>
         <p class="chart-subtitle">Grouped bar comparison across all five models</p>
-        <div class="chart-container">
-          <canvas id="groupedBarChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="groupedBarChart"></canvas></div>
       </div>
       <div class="chart-card">
         <h3>Scalability vs. Personalization</h3>
         <p class="chart-subtitle">The fundamental trade-off in education design</p>
-        <div class="chart-container">
-          <canvas id="scatterChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="scatterChart"></canvas></div>
       </div>
       <div class="chart-card">
         <h3>Cost vs. Innovation Index</h3>
         <p class="chart-subtitle">Annual tuition mapped against pedagogical innovation</p>
-        <div class="chart-container">
-          <canvas id="costChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="costChart"></canvas></div>
       </div>
     </div>
   </div>
 
+  <!-- ============================================================ -->
   <!-- PROS & CONS SECTION -->
+  <!-- ============================================================ -->
   <div class="section" id="proscons">
     <div class="section-title">Detailed Pros & Cons</div>
     <p class="section-desc">Click any school to expand its full analysis</p>
-
-    <div class="school-cards" id="schoolCards">
-      <!-- Generated by JS -->
-    </div>
+    <div class="school-cards" id="schoolCards"></div>
   </div>
 
+  <!-- ============================================================ -->
   <!-- FEATURE MATRIX SECTION -->
+  <!-- ============================================================ -->
   <div class="section" id="features">
     <div class="section-title">Feature Matrix</div>
     <p class="section-desc">How each model addresses capabilities critical to your academy</p>
 
     <table class="matrix-table">
       <thead>
-        <tr>
-          <th>Feature</th>
-          <th>Alpha</th>
-          <th>Acton</th>
-          <th>High Tech High</th>
-          <th>Khan Lab</th>
-          <th>Microschool</th>
-        </tr>
+        <tr><th>Feature</th><th>Alpha</th><th>Acton</th><th>High Tech High</th><th>Khan Lab</th><th>Microschool</th></tr>
       </thead>
-      <tbody id="matrixBody">
-        <!-- Generated by JS -->
-      </tbody>
+      <tbody id="matrixBody"></tbody>
     </table>
 
     <div class="matrix-legend">
@@ -658,14 +847,14 @@
       <div class="chart-card full-width">
         <h3>Alignment with Your Vision</h3>
         <p class="chart-subtitle">How closely each model aligns with your academy's five core priorities</p>
-        <div class="chart-container">
-          <canvas id="alignmentChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="alignmentChart"></canvas></div>
       </div>
     </div>
   </div>
 
+  <!-- ============================================================ -->
   <!-- BLUEPRINT SECTION -->
+  <!-- ============================================================ -->
   <div class="section" id="blueprint">
     <div class="section-title">Your Academy Blueprint</div>
     <p class="section-desc">Mapping educational models to your three-pillar curriculum architecture</p>
@@ -686,7 +875,6 @@
           <li>Human teachers supplement technology, not replaced by it</li>
         </ul>
       </div>
-
       <div class="pillar-card studio">
         <h3>Applied Studios</h3>
         <div class="pillar-sub">Pillar Two</div>
@@ -702,7 +890,6 @@
           <li>Portfolio-based assessment and public exhibition</li>
         </ul>
       </div>
-
       <div class="pillar-card human">
         <h3>Human Development</h3>
         <div class="pillar-sub">Pillar Three</div>
@@ -724,10 +911,110 @@
       <div class="chart-card full-width">
         <h3>What to Borrow vs. What to Build New</h3>
         <p class="chart-subtitle">Sourcing proven elements from each model while innovating where none deliver</p>
-        <div class="chart-container">
-          <canvas id="borrowChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="borrowChart"></canvas></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- DAILY SCHEDULES SECTION (NEW) -->
+  <!-- ============================================================ -->
+  <div class="section" id="schedule">
+    <div class="section-title">Daily Schedule Comparison</div>
+    <p class="section-desc">How each model structures a typical school day — time blocks are proportional</p>
+
+    <div class="schedule-grid" id="scheduleGrid"></div>
+
+    <div class="charts-grid">
+      <div class="chart-card full-width">
+        <h3>Time Allocation Breakdown</h3>
+        <p class="chart-subtitle">Percentage of the school day devoted to each category</p>
+        <div class="chart-container"><canvas id="timeAllocChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- METHODOLOGIES SECTION (NEW) -->
+  <!-- ============================================================ -->
+  <div class="section" id="methods">
+    <div class="section-title">Educational Methodologies Defined</div>
+    <p class="section-desc">The seven core approaches informing your academy's design</p>
+
+    <div class="method-grid" id="methodGrid"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PA REGULATIONS SECTION (NEW) -->
+  <!-- ============================================================ -->
+  <div class="section" id="regulations">
+    <div class="section-title">PA Regulatory Requirements</div>
+    <p class="section-desc">Checklist for operating a private academic school in Pennsylvania — research in progress</p>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent-teal);">2</div>
+        <div class="metric-label">Researched</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--accent-amber);">4</div>
+        <div class="metric-label">Pending</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" style="color: var(--text-dim);">6</div>
+        <div class="metric-label">Not Started</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">12</div>
+        <div class="metric-label">Total Items</div>
+      </div>
+    </div>
+
+    <div class="reg-grid" id="regGrid"></div>
+
+    <div class="comp-note">
+      <strong>Note:</strong> This section will be populated as we research PA-specific requirements together. Items marked "Not Started" are on the roadmap. The regulatory landscape for innovative private schools is nuanced — we'll need to dig into PDE (PA Dept. of Education) guidelines, Act 90, and accreditation pathways.
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- COMPETITIVE LANDSCAPE SECTION (NEW) -->
+  <!-- ============================================================ -->
+  <div class="section" id="landscape">
+    <div class="section-title">Competitive Landscape</div>
+    <p class="section-desc">Private schools and alternative programs in the NEPA region and beyond — to be expanded with research</p>
+
+    <div class="comp-table-wrap">
+      <table class="comp-table" id="compTable">
+        <thead>
+          <tr>
+            <th>School / Program</th>
+            <th>Type</th>
+            <th>Grades</th>
+            <th>Approx. Tuition</th>
+            <th>Focus</th>
+            <th>Threat Level</th>
+          </tr>
+        </thead>
+        <tbody id="compBody"></tbody>
+      </table>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Market Positioning</h3>
+        <p class="chart-subtitle">Where your academy sits relative to local competitors</p>
+        <div class="chart-container"><canvas id="positionChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Differentiation Gaps</h3>
+        <p class="chart-subtitle">What no one in your area is offering</p>
+        <div class="chart-container"><canvas id="gapChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="comp-note">
+      <strong>Next step:</strong> We need to research specific private schools, charter schools, and alternative programs in the Scranton/Wilkes-Barre/NEPA region. This section will grow as we map the actual competitive landscape around Blakely, PA.
     </div>
   </div>
 
@@ -737,158 +1024,168 @@
 </div>
 
 <script>
-// Chart.js global config
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+const storedTheme = localStorage.getItem('dashboard-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', storedTheme);
+document.body.setAttribute('data-theme', storedTheme);
+
+function getChartColors() {
+  const theme = document.body.getAttribute('data-theme');
+  return theme === 'light'
+    ? { grid: 'rgba(0,0,0,0.06)', text: '#555568' }
+    : { grid: 'rgba(255,255,255,0.04)', text: '#888898' };
+}
+
+function updateAllCharts() {
+  const cc = getChartColors();
+  Chart.defaults.color = cc.text;
+  Object.values(Chart.instances).forEach(chart => {
+    if (chart.config?.options?.scales) {
+      const scales = chart.config.options.scales;
+      Object.values(scales).forEach(scale => {
+        if (scale.grid) scale.grid.color = cc.grid;
+        if (scale.angleLines) scale.angleLines.color = cc.grid;
+        if (scale.ticks) scale.ticks.color = cc.text;
+        if (scale.pointLabels) scale.pointLabels.color = cc.text;
+        if (scale.title) scale.title.color = cc.text;
+      });
+    }
+    if (chart.config?.options?.plugins?.legend?.labels) {
+      chart.config.options.plugins.legend.labels.color = cc.text;
+    }
+    chart.update('none');
+  });
+}
+
+function toggleTheme() {
+  const body = document.body;
+  const current = body.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  body.setAttribute('data-theme', next);
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('dashboard-theme', next);
+  document.getElementById('themeIcon').textContent = next === 'dark' ? '☾' : '☀';
+  document.getElementById('themeLabel').textContent = next === 'dark' ? 'Dark' : 'Light';
+  updateAllCharts();
+}
+
+// Set initial icon
+document.addEventListener('DOMContentLoaded', () => {
+  const theme = document.body.getAttribute('data-theme');
+  document.getElementById('themeIcon').textContent = theme === 'dark' ? '☾' : '☀';
+  document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Dark' : 'Light';
+});
+
+// ============================================================
+// GLOBAL CONFIG
+// ============================================================
 Chart.defaults.color = '#888898';
 Chart.defaults.font.family = "'DM Sans', sans-serif";
 Chart.defaults.font.size = 11;
 Chart.defaults.plugins.legend.labels.boxWidth = 12;
 Chart.defaults.plugins.legend.labels.padding = 16;
 
-const colors = {
-  alpha: '#4888e8',
-  acton: '#38c8b0',
-  hth: '#e05878',
-  khan: '#9868e8',
-  micro: '#e8a838',
-  alphaA: 'rgba(72,136,232,0.15)',
-  actonA: 'rgba(56,200,176,0.15)',
-  hthA: 'rgba(224,88,120,0.15)',
-  khanA: 'rgba(152,104,232,0.15)',
-  microA: 'rgba(232,168,56,0.15)',
+const C = {
+  alpha: '#4888e8', acton: '#38c8b0', hth: '#e05878', khan: '#9868e8', micro: '#e8a838',
+  alphaA: 'rgba(72,136,232,0.15)', actonA: 'rgba(56,200,176,0.15)',
+  hthA: 'rgba(224,88,120,0.15)', khanA: 'rgba(152,104,232,0.15)', microA: 'rgba(232,168,56,0.15)',
 };
 
 // Tab Navigation
-function showSection(id) {
+function showSection(id, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
+  btn.classList.add('active');
 }
 
-// ============ OVERVIEW CHARTS ============
-
-// Agency vs Structure (horizontal bar)
+// ============================================================
+// OVERVIEW CHARTS
+// ============================================================
 new Chart(document.getElementById('agencyChart'), {
   type: 'bar',
   data: {
     labels: ['Alpha School', 'Acton Academy', 'High Tech High', 'Khan Lab', 'Microschool (Avg)'],
     datasets: [{
-      label: 'Student Agency',
-      data: [6, 9.5, 7.5, 8, 8],
-      backgroundColor: [colors.alpha, colors.acton, colors.hth, colors.khan, colors.micro],
-      borderRadius: 6,
-      barPercentage: 0.6,
+      label: 'Student Agency', data: [6, 9.5, 7.5, 8, 8],
+      backgroundColor: [C.alpha, C.acton, C.hth, C.khan, C.micro], borderRadius: 6, barPercentage: 0.6,
     }, {
-      label: 'Provided Structure',
-      data: [8, 4, 6.5, 6, 5],
-      backgroundColor: [colors.alphaA, colors.actonA, colors.hthA, colors.khanA, colors.microA].map(c => c.replace('0.15', '0.5')),
-      borderRadius: 6,
-      barPercentage: 0.6,
+      label: 'Provided Structure', data: [8, 4, 6.5, 6, 5],
+      backgroundColor: [C.alphaA, C.actonA, C.hthA, C.khanA, C.microA].map(c => c.replace('0.15', '0.5')),
+      borderRadius: 6, barPercentage: 0.6,
     }]
   },
   options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
-      y: { grid: { display: false }, border: { display: false } }
-    },
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    scales: { x: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }, y: { grid: { display: false }, border: { display: false } } },
     plugins: { legend: { position: 'bottom' } }
   }
 });
 
-// Tech Integration (doughnut)
 new Chart(document.getElementById('techChart'), {
   type: 'doughnut',
   data: {
     labels: ['AI-Driven Core', 'Tech-Supported', 'Tech as Tool', 'Low-Tech / Human-Led'],
-    datasets: [{
-      data: [35, 25, 25, 15],
-      backgroundColor: [colors.alpha, colors.khan, colors.hth, colors.acton],
-      borderWidth: 0,
-      hoverOffset: 8,
-    }]
+    datasets: [{ data: [35, 25, 25, 15], backgroundColor: [C.alpha, C.khan, C.hth, C.acton], borderWidth: 0, hoverOffset: 8 }]
   },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '65%',
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 12 } }
-    }
-  }
+  options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 12 } } } }
 });
 
-// Radar Chart
 new Chart(document.getElementById('radarChart'), {
   type: 'radar',
   data: {
     labels: ['Academic Rigor', 'Student Agency', 'Intrapersonal Dev', 'Creative Arts', 'Tech/AI Literacy', 'Real-World Application', 'Individualization'],
     datasets: [
-      { label: 'Alpha', data: [7, 6, 5, 3, 9, 6, 9], borderColor: colors.alpha, backgroundColor: colors.alphaA, borderWidth: 2, pointRadius: 3 },
-      { label: 'Acton', data: [6, 9.5, 8, 5, 5, 8, 8], borderColor: colors.acton, backgroundColor: colors.actonA, borderWidth: 2, pointRadius: 3 },
-      { label: 'High Tech High', data: [7, 7, 5, 8, 6, 9.5, 6], borderColor: colors.hth, backgroundColor: colors.hthA, borderWidth: 2, pointRadius: 3 },
-      { label: 'Khan Lab', data: [8, 8, 4, 4, 7, 6, 8], borderColor: colors.khan, backgroundColor: colors.khanA, borderWidth: 2, pointRadius: 3 },
-      { label: 'Your Academy', data: [8, 8, 9.5, 9, 9, 9, 9], borderColor: colors.micro, backgroundColor: colors.microA, borderWidth: 2.5, pointRadius: 4, borderDash: [5, 3] },
+      { label: 'Alpha', data: [7, 6, 5, 3, 9, 6, 9], borderColor: C.alpha, backgroundColor: C.alphaA, borderWidth: 2, pointRadius: 3 },
+      { label: 'Acton', data: [6, 9.5, 8, 5, 5, 8, 8], borderColor: C.acton, backgroundColor: C.actonA, borderWidth: 2, pointRadius: 3 },
+      { label: 'High Tech High', data: [7, 7, 5, 8, 6, 9.5, 6], borderColor: C.hth, backgroundColor: C.hthA, borderWidth: 2, pointRadius: 3 },
+      { label: 'Khan Lab', data: [8, 8, 4, 4, 7, 6, 8], borderColor: C.khan, backgroundColor: C.khanA, borderWidth: 2, pointRadius: 3 },
+      { label: 'Your Academy', data: [8, 8, 9.5, 9, 9, 9, 9], borderColor: C.micro, backgroundColor: C.microA, borderWidth: 2.5, pointRadius: 4, borderDash: [5, 3] },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      r: {
-        beginAtZero: true, max: 10,
-        grid: { color: 'rgba(255,255,255,0.06)' },
-        angleLines: { color: 'rgba(255,255,255,0.06)' },
-        pointLabels: { font: { size: 11 } },
-        ticks: { display: false }
-      }
-    },
+    responsive: true, maintainAspectRatio: false,
+    scales: { r: { beginAtZero: true, max: 10, grid: { color: 'rgba(255,255,255,0.06)' }, angleLines: { color: 'rgba(255,255,255,0.06)' }, pointLabels: { font: { size: 11 } }, ticks: { display: false } } },
     plugins: { legend: { position: 'bottom' } }
   }
 });
 
-// ============ COMPARISON CHARTS ============
-
-// Grouped Bar
+// ============================================================
+// COMPARISON CHARTS
+// ============================================================
 new Chart(document.getElementById('groupedBarChart'), {
   type: 'bar',
   data: {
     labels: ['Academic Rigor', 'Personalization', 'Life Skills', 'Arts Integration', 'Tech Literacy', 'Intrapersonal', 'College Prep'],
     datasets: [
-      { label: 'Alpha', data: [7, 9, 7, 3, 9, 5, 6], backgroundColor: colors.alpha, borderRadius: 4, barPercentage: 0.7 },
-      { label: 'Acton', data: [6, 8, 8, 5, 5, 8, 5], backgroundColor: colors.acton, borderRadius: 4, barPercentage: 0.7 },
-      { label: 'HTH', data: [7, 6, 6, 8, 6, 5, 7], backgroundColor: colors.hth, borderRadius: 4, barPercentage: 0.7 },
-      { label: 'Khan Lab', data: [8, 8, 5, 4, 7, 4, 7], backgroundColor: colors.khan, borderRadius: 4, barPercentage: 0.7 },
+      { label: 'Alpha', data: [7, 9, 7, 3, 9, 5, 6], backgroundColor: C.alpha, borderRadius: 4, barPercentage: 0.7 },
+      { label: 'Acton', data: [6, 8, 8, 5, 5, 8, 5], backgroundColor: C.acton, borderRadius: 4, barPercentage: 0.7 },
+      { label: 'HTH', data: [7, 6, 6, 8, 6, 5, 7], backgroundColor: C.hth, borderRadius: 4, barPercentage: 0.7 },
+      { label: 'Khan Lab', data: [8, 8, 5, 4, 7, 4, 7], backgroundColor: C.khan, borderRadius: 4, barPercentage: 0.7 },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
-      x: { grid: { display: false }, border: { display: false } }
-    },
+    responsive: true, maintainAspectRatio: false,
+    scales: { y: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }, x: { grid: { display: false }, border: { display: false } } },
     plugins: { legend: { position: 'bottom' } }
   }
 });
 
-// Scatter: Scalability vs Personalization
 new Chart(document.getElementById('scatterChart'), {
   type: 'bubble',
   data: {
     datasets: [
-      { label: 'Alpha', data: [{ x: 8, y: 9, r: 14 }], backgroundColor: colors.alphaA.replace('0.15','0.6'), borderColor: colors.alpha, borderWidth: 2 },
-      { label: 'Acton', data: [{ x: 7, y: 8, r: 12 }], backgroundColor: colors.actonA.replace('0.15','0.6'), borderColor: colors.acton, borderWidth: 2 },
-      { label: 'HTH', data: [{ x: 5, y: 6, r: 16 }], backgroundColor: colors.hthA.replace('0.15','0.6'), borderColor: colors.hth, borderWidth: 2 },
-      { label: 'Khan Lab', data: [{ x: 3, y: 8, r: 10 }], backgroundColor: colors.khanA.replace('0.15','0.6'), borderColor: colors.khan, borderWidth: 2 },
-      { label: 'Microschool', data: [{ x: 4, y: 9, r: 8 }], backgroundColor: colors.microA.replace('0.15','0.6'), borderColor: colors.micro, borderWidth: 2 },
+      { label: 'Alpha', data: [{ x: 8, y: 9, r: 14 }], backgroundColor: C.alphaA.replace('0.15','0.6'), borderColor: C.alpha, borderWidth: 2 },
+      { label: 'Acton', data: [{ x: 7, y: 8, r: 12 }], backgroundColor: C.actonA.replace('0.15','0.6'), borderColor: C.acton, borderWidth: 2 },
+      { label: 'HTH', data: [{ x: 5, y: 6, r: 16 }], backgroundColor: C.hthA.replace('0.15','0.6'), borderColor: C.hth, borderWidth: 2 },
+      { label: 'Khan Lab', data: [{ x: 3, y: 8, r: 10 }], backgroundColor: C.khanA.replace('0.15','0.6'), borderColor: C.khan, borderWidth: 2 },
+      { label: 'Microschool', data: [{ x: 4, y: 9, r: 8 }], backgroundColor: C.microA.replace('0.15','0.6'), borderColor: C.micro, borderWidth: 2 },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
     scales: {
       x: { title: { display: true, text: 'Scalability →', font: { size: 11 } }, max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
       y: { title: { display: true, text: 'Personalization →', font: { size: 11 } }, max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }
@@ -897,21 +1194,19 @@ new Chart(document.getElementById('scatterChart'), {
   }
 });
 
-// Cost vs Innovation
 new Chart(document.getElementById('costChart'), {
   type: 'bubble',
   data: {
     datasets: [
-      { label: 'Alpha ($40k)', data: [{ x: 40, y: 8.5, r: 14 }], backgroundColor: colors.alphaA.replace('0.15','0.6'), borderColor: colors.alpha, borderWidth: 2 },
-      { label: 'Acton ($15-25k)', data: [{ x: 20, y: 8, r: 12 }], backgroundColor: colors.actonA.replace('0.15','0.6'), borderColor: colors.acton, borderWidth: 2 },
-      { label: 'HTH (Charter/Free)', data: [{ x: 0, y: 9, r: 16 }], backgroundColor: colors.hthA.replace('0.15','0.6'), borderColor: colors.hth, borderWidth: 2 },
-      { label: 'Khan Lab (~$35k)', data: [{ x: 35, y: 7.5, r: 10 }], backgroundColor: colors.khanA.replace('0.15','0.6'), borderColor: colors.khan, borderWidth: 2 },
-      { label: 'Microschool ($10-26k)', data: [{ x: 18, y: 7, r: 8 }], backgroundColor: colors.microA.replace('0.15','0.6'), borderColor: colors.micro, borderWidth: 2 },
+      { label: 'Alpha ($40k)', data: [{ x: 40, y: 8.5, r: 14 }], backgroundColor: C.alphaA.replace('0.15','0.6'), borderColor: C.alpha, borderWidth: 2 },
+      { label: 'Acton ($15-25k)', data: [{ x: 20, y: 8, r: 12 }], backgroundColor: C.actonA.replace('0.15','0.6'), borderColor: C.acton, borderWidth: 2 },
+      { label: 'HTH (Charter/Free)', data: [{ x: 0, y: 9, r: 16 }], backgroundColor: C.hthA.replace('0.15','0.6'), borderColor: C.hth, borderWidth: 2 },
+      { label: 'Khan Lab (~$35k)', data: [{ x: 35, y: 7.5, r: 10 }], backgroundColor: C.khanA.replace('0.15','0.6'), borderColor: C.khan, borderWidth: 2 },
+      { label: 'Microschool ($10-26k)', data: [{ x: 18, y: 7, r: 8 }], backgroundColor: C.microA.replace('0.15','0.6'), borderColor: C.micro, borderWidth: 2 },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
     scales: {
       x: { title: { display: true, text: 'Annual Tuition ($K) →', font: { size: 11 } }, max: 50, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
       y: { title: { display: true, text: 'Innovation Index →', font: { size: 11 } }, max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }
@@ -920,176 +1215,68 @@ new Chart(document.getElementById('costChart'), {
   }
 });
 
-// ============ PROS & CONS ============
+// ============================================================
+// PROS & CONS
+// ============================================================
 const schoolData = [
-  {
-    name: 'Alpha School',
-    icon: 'α',
-    iconClass: 'alpha',
-    tagline: 'AI-Efficiency Model · Austin, TX · ~$40k/yr',
-    pros: [
-      'Mastery-based progression eliminates compounding knowledge gaps',
-      'AI-adaptive platform personalizes pacing and difficulty in real time',
-      'Compressing core academics into 2 hours frees time for life skills and passion exploration',
-      'Gamification and immediate feedback drive engagement',
-      'Afternoon programming covers 24 life skills including public speaking and entrepreneurship',
-      'Spaced repetition built into the platform strengthens long-term retention',
-    ],
-    cons: [
-      'PA Dept. of Education called the model "untested" and denied charter application',
-      'Replaces teachers with "guides" — minimal direct human instruction',
-      'Heavy reliance on screen-based learning, especially for younger students',
-      '~$40k/yr tuition raises serious accessibility and equity concerns',
-      'Governance concerns: non-profits contracting with for-profit entities owned by same people',
-      'Platform primarily bundles third-party apps (IXL) rather than proprietary AI',
-      'Limited evidence for diverse learner profiles and students with learning disabilities',
-      'Eye-tracking and screen recording raise surveillance concerns',
-    ]
+  { name:'Alpha School', icon:'α', iconClass:'alpha', tagline:'AI-Efficiency Model · Austin, TX · ~$40k/yr',
+    pros:['Mastery-based progression eliminates compounding knowledge gaps','AI-adaptive platform personalizes pacing and difficulty in real time','Compressing core academics into 2 hours frees time for life skills','Gamification and immediate feedback drive engagement','Afternoon programming covers 24 life skills','Spaced repetition strengthens long-term retention'],
+    cons:['PA Dept. of Education called the model "untested"','Replaces teachers with guides — minimal human instruction','Heavy reliance on screen-based learning for young students','~$40k/yr tuition raises accessibility concerns','Governance concerns: non-profit/for-profit entanglement','Platform primarily bundles third-party apps, not proprietary AI','Limited evidence for diverse learner profiles','Eye-tracking and screen recording raise surveillance concerns']
   },
-  {
-    name: 'Acton Academy',
-    icon: 'A',
-    iconClass: 'acton',
-    tagline: 'Learner-Driven Model · 300+ Campuses Worldwide · $15-25k/yr',
-    pros: [
-      'Learner-driven philosophy builds genuine ownership, agency, and intrinsic motivation',
-      'Socratic method develops critical thinking and self-awareness organically',
-      'Character development is central — "character call-outs" and growth-focused assessment',
-      '300+ campuses demonstrate the model is replicable and adaptable',
-      '"Hero\'s Journey" framework gives students a compelling narrative for their education',
-      'Hands-on quests and apprenticeships connect learning to real life',
-      'Independently owned campuses allow local customization within shared standards',
-      'Mixed-age groupings mirror real-world social dynamics',
-    ],
-    cons: [
-      'Students who struggle with self-direction or have ADHD may not thrive',
-      'No specialized support services like IEPs or tailored interventions',
-      'Requires significant "detox" period for students transitioning from traditional school',
-      'Non-traditional assessment makes it harder for parents to gauge progress',
-      'Quality varies significantly across independently owned campuses',
-      'Limited emphasis on structured arts or technology curriculum',
-      'Can lean toward ideological rigidity around "freedom" at every developmental stage',
-    ]
+  { name:'Acton Academy', icon:'A', iconClass:'acton', tagline:'Learner-Driven Model · 300+ Campuses · $15-25k/yr',
+    pros:['Learner-driven philosophy builds genuine ownership and agency','Socratic method develops critical thinking organically','Character development is central, not an afterthought','300+ campuses prove the model is replicable','Hero\'s Journey framework gives students a compelling narrative','Hands-on quests and apprenticeships connect learning to life','Independently owned campuses allow local customization','Mixed-age groupings mirror real-world dynamics'],
+    cons:['Students who struggle with self-direction may not thrive','No specialized support services like IEPs','Requires significant "detox" period from traditional schooling','Non-traditional assessment harder for parents to gauge','Quality varies across independently owned campuses','Limited emphasis on structured arts or tech curriculum','Can lean ideologically rigid around "freedom"']
   },
-  {
-    name: 'High Tech High',
-    icon: 'H',
-    iconClass: 'hth',
-    tagline: 'Project-Based Learning Model · San Diego Charter · Public (Free)',
-    pros: [
-      'Gold standard for deep, interdisciplinary project-based learning',
-      'Spaces designed like startups/incubators — student work displayed everywhere',
-      'Teachers as mentors and project designers fostering creativity and collaboration',
-      'Strong emphasis on equity and culturally responsive pedagogy',
-      'Students develop professional skills through authentic, real-world work',
-      'Extensive free resources, professional development, and graduate school of education',
-      'Students perform as well or better on standardized tests despite less test prep',
-      '"Liberatory PBL" connects learning to student identity and community impact',
-    ],
-    cons: [
-      'Some graduates struggle transitioning to traditional college environments',
-      'Deep-dive projects can mean less breadth of content coverage',
-      'Requires highly skilled teachers who can design rigorous projects — hard to staff',
-      'Model works best with smaller class sizes, increasing per-student costs',
-      'Team-based structure can mask individual knowledge gaps',
-      'Charter school model requires significant adaptation for private academy',
-      'Resource-intensive: materials, community partnerships, exhibition logistics',
-    ]
+  { name:'High Tech High', icon:'H', iconClass:'hth', tagline:'Project-Based Learning · San Diego Charter · Public',
+    pros:['Gold standard for deep interdisciplinary PBL','Spaces designed like startups — student work displayed everywhere','Teachers as mentors and project designers','Strong emphasis on equity and culturally responsive pedagogy','Students develop professional skills through authentic work','Extensive free resources and graduate school of education','Students perform as well or better on standardized tests','Liberatory PBL connects learning to identity and community'],
+    cons:['Some graduates struggle transitioning to traditional college','Deep-dive projects can mean less breadth of coverage','Requires highly skilled teachers who can design projects','Smaller class sizes increase per-student costs','Team-based structure can mask individual knowledge gaps','Charter model requires adaptation for private academy','Resource-intensive: materials, partnerships, exhibitions']
   },
-  {
-    name: 'Khan Lab School',
-    icon: 'K',
-    iconClass: 'khan',
-    tagline: 'Mastery-Based Model · Silicon Valley · ~$35k/yr',
-    pros: [
-      'Mastery-based model ensures deep understanding before advancement',
-      'Mixed-age learning allows subject-level progression',
-      'Direct connection to Khan Academy technology and educational research',
-      'Strong emphasis on student agency and self-directed learning',
-      'Deep project-based learning integrated into curriculum',
-      '100% graduation rate and high parent/student satisfaction',
-      'Functions as a living lab for testing innovative approaches',
-    ],
-    cons: [
-      'Located exclusively in Silicon Valley — model not widely replicated',
-      'Tuition-based private school limits accessibility',
-      'Relatively small and new — less data on long-term outcomes',
-      'Heavy Silicon Valley culture may not translate to every community',
-      'Less emphasis on intrapersonal and emotional development',
-    ]
+  { name:'Khan Lab School', icon:'K', iconClass:'khan', tagline:'Mastery-Based Model · Silicon Valley · ~$35k/yr',
+    pros:['Mastery-based model ensures deep understanding','Mixed-age learning allows subject-level progression','Direct connection to Khan Academy technology','Strong emphasis on student agency','Deep project-based learning integrated into curriculum','100% graduation rate and high satisfaction','Functions as a living lab for innovation'],
+    cons:['Located exclusively in Silicon Valley — not widely replicated','Tuition-based, limiting accessibility','Relatively small and new — less long-term outcome data','Heavy Silicon Valley culture may not translate everywhere','Less emphasis on intrapersonal and emotional development']
   },
-  {
-    name: 'Microschool Model',
-    icon: 'M',
-    iconClass: 'micro',
-    tagline: 'Structural Format · Nationwide Movement · $10-26k/yr avg',
-    pros: [
-      'Small size (under 150 students) allows genuine individualization and close relationships',
-      'Maximum flexibility in curriculum, schedule, pedagogy, and physical space',
-      'Lower startup barriers — no massive building or staff needed to begin',
-      'Can operate under various legal structures depending on state law',
-      'Post-pandemic demand is surging with strong tailwinds',
-      'Mixed-age groupings mirror real-world social dynamics',
-    ],
-    cons: [
-      'Regulatory landscape is inconsistent — 84% of microschools are not accredited',
-      'Sustainability is a real challenge with tuition-dependent models',
-      'Quality varies wildly with no standardized oversight',
-      'Limited access to electives, extracurriculars, sports, and specialized facilities',
-      'Can feel isolating for students needing broader social exposure',
-      'College admissions offices may be unfamiliar with non-traditional transcripts',
-      'Over 60% of founders are not licensed educators',
-    ]
+  { name:'Microschool Model', icon:'M', iconClass:'micro', tagline:'Structural Format · Nationwide · $10-26k/yr avg',
+    pros:['Small size allows genuine individualization','Maximum flexibility in curriculum, schedule, pedagogy','Lower startup barriers','Can operate under various legal structures','Post-pandemic demand is surging','Mixed-age groupings mirror real-world dynamics'],
+    cons:['84% of microschools are not accredited','Sustainability is a real challenge','Quality varies wildly with no standardized oversight','Limited access to electives, sports, specialized facilities','Can feel isolating for students needing broader exposure','College admissions may be unfamiliar with transcripts','Over 60% of founders are not licensed educators']
   }
 ];
 
-// Render school cards
 const cardsContainer = document.getElementById('schoolCards');
-schoolData.forEach((school, i) => {
+schoolData.forEach((s, i) => {
   const card = document.createElement('div');
   card.className = 'school-card' + (i === 0 ? ' expanded' : '');
   card.innerHTML = `
     <div class="school-header" onclick="this.parentElement.classList.toggle('expanded')">
-      <div class="school-icon ${school.iconClass}">${school.icon}</div>
-      <div class="school-meta">
-        <h3>${school.name}</h3>
-        <div class="tagline">${school.tagline}</div>
-      </div>
+      <div class="school-icon ${s.iconClass}">${s.icon}</div>
+      <div class="school-meta"><h3>${s.name}</h3><div class="tagline">${s.tagline}</div></div>
       <div class="expand-toggle">▾</div>
     </div>
-    <div class="school-body">
-      <div class="pros-cons">
-        <div class="pros-col">
-          <h4>Strengths</h4>
-          ${school.pros.map(p => `<div class="pc-item"><span class="dot"></span><span>${p}</span></div>`).join('')}
-        </div>
-        <div class="cons-col">
-          <h4>Concerns</h4>
-          ${school.cons.map(c => `<div class="pc-item"><span class="dot"></span><span>${c}</span></div>`).join('')}
-        </div>
-      </div>
-    </div>
-  `;
+    <div class="school-body"><div class="pros-cons">
+      <div class="pros-col"><h4>Strengths</h4>${s.pros.map(p=>`<div class="pc-item"><span class="dot"></span><span>${p}</span></div>`).join('')}</div>
+      <div class="cons-col"><h4>Concerns</h4>${s.cons.map(c=>`<div class="pc-item"><span class="dot"></span><span>${c}</span></div>`).join('')}</div>
+    </div></div>`;
   cardsContainer.appendChild(card);
 });
 
-// ============ FEATURE MATRIX ============
+// ============================================================
+// FEATURE MATRIX
+// ============================================================
 const features = [
-  { name: 'Mastery-Based Progression', scores: ['strong','moderate','weak','strong','moderate'] },
-  { name: 'AI/Adaptive Learning', scores: ['strong','weak','weak','moderate','weak'] },
-  { name: 'Project-Based Learning', scores: ['moderate','strong','strong','strong','moderate'] },
-  { name: 'Socratic Method', scores: ['none','strong','moderate','moderate','moderate'] },
-  { name: 'Intrapersonal Development', scores: ['moderate','strong','moderate','weak','moderate'] },
-  { name: 'Creative Arts Integration', scores: ['weak','moderate','strong','weak','moderate'] },
-  { name: 'Music Program', scores: ['none','weak','moderate','none','weak'] },
-  { name: 'Technology/AI Curriculum', scores: ['strong','moderate','moderate','moderate','weak'] },
-  { name: 'Real-World Apprenticeships', scores: ['moderate','strong','strong','moderate','moderate'] },
-  { name: 'Portfolio Assessment', scores: ['weak','strong','strong','strong','moderate'] },
-  { name: 'Mixed-Age Groupings', scores: ['moderate','strong','weak','strong','strong'] },
-  { name: 'Special Needs Support', scores: ['weak','none','moderate','weak','weak'] },
-  { name: 'College Readiness Track', scores: ['moderate','weak','moderate','strong','weak'] },
-  { name: 'Financial Literacy', scores: ['moderate','strong','weak','weak','moderate'] },
-  { name: 'Accreditation', scores: ['moderate','moderate','strong','strong','weak'] },
+  { name:'Mastery-Based Progression', scores:['strong','moderate','weak','strong','moderate'] },
+  { name:'AI/Adaptive Learning', scores:['strong','weak','weak','moderate','weak'] },
+  { name:'Project-Based Learning', scores:['moderate','strong','strong','strong','moderate'] },
+  { name:'Socratic Method', scores:['none','strong','moderate','moderate','moderate'] },
+  { name:'Intrapersonal Development', scores:['moderate','strong','moderate','weak','moderate'] },
+  { name:'Creative Arts Integration', scores:['weak','moderate','strong','weak','moderate'] },
+  { name:'Music Program', scores:['none','weak','moderate','none','weak'] },
+  { name:'Technology/AI Curriculum', scores:['strong','moderate','moderate','moderate','weak'] },
+  { name:'Real-World Apprenticeships', scores:['moderate','strong','strong','moderate','moderate'] },
+  { name:'Portfolio Assessment', scores:['weak','strong','strong','strong','moderate'] },
+  { name:'Mixed-Age Groupings', scores:['moderate','strong','weak','strong','strong'] },
+  { name:'Special Needs Support', scores:['weak','none','moderate','weak','weak'] },
+  { name:'College Readiness Track', scores:['moderate','weak','moderate','strong','weak'] },
+  { name:'Financial Literacy', scores:['moderate','strong','weak','weak','moderate'] },
+  { name:'Accreditation', scores:['moderate','moderate','strong','strong','weak'] },
 ];
 
 const matrixBody = document.getElementById('matrixBody');
@@ -1105,47 +1292,294 @@ new Chart(document.getElementById('alignmentChart'), {
   data: {
     labels: ['Alpha', 'Acton', 'High Tech High', 'Khan Lab', 'Microschool'],
     datasets: [
-      { label: 'Applied Knowledge', data: [6, 8, 9, 6, 6], backgroundColor: colors.hth, borderRadius: 4 },
-      { label: 'AI & Tech Literacy', data: [9, 5, 6, 7, 4], backgroundColor: colors.alpha, borderRadius: 4 },
-      { label: 'Art & Design / Music', data: [3, 5, 8, 4, 5], backgroundColor: colors.khan, borderRadius: 4 },
-      { label: 'Intrapersonal Skills', data: [5, 8, 5, 4, 6], backgroundColor: colors.acton, borderRadius: 4 },
-      { label: 'Individualization', data: [9, 8, 6, 8, 9], backgroundColor: colors.micro, borderRadius: 4 },
+      { label: 'Applied Knowledge', data: [6, 8, 9, 6, 6], backgroundColor: C.hth, borderRadius: 4 },
+      { label: 'AI & Tech Literacy', data: [9, 5, 6, 7, 4], backgroundColor: C.alpha, borderRadius: 4 },
+      { label: 'Art & Design / Music', data: [3, 5, 8, 4, 5], backgroundColor: C.khan, borderRadius: 4 },
+      { label: 'Intrapersonal Skills', data: [5, 8, 5, 4, 6], backgroundColor: C.acton, borderRadius: 4 },
+      { label: 'Individualization', data: [9, 8, 6, 8, 9], backgroundColor: C.micro, borderRadius: 4 },
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
-      x: { grid: { display: false }, border: { display: false } }
-    },
+    responsive: true, maintainAspectRatio: false,
+    scales: { y: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }, x: { grid: { display: false }, border: { display: false } } },
     plugins: { legend: { position: 'bottom' } }
   }
 });
 
-// ============ BLUEPRINT: Borrow Chart ============
+// Borrow Chart
 new Chart(document.getElementById('borrowChart'), {
   type: 'bar',
   data: {
     labels: ['Mastery Progression', 'AI-Adaptive Tools', 'Socratic Method', 'PBL / Studio Work', 'Character Framework', 'Apprenticeships', 'Space Design', 'Intrapersonal Track', 'Arts Co-Equal Pillar', 'Music Program'],
     datasets: [
-      { label: 'Borrow from Alpha', data: [8, 9, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: colors.alpha, borderRadius: 4, barPercentage: 0.6 },
-      { label: 'Borrow from Acton', data: [0, 0, 9, 0, 9, 7, 0, 0, 0, 0], backgroundColor: colors.acton, borderRadius: 4, barPercentage: 0.6 },
-      { label: 'Borrow from HTH', data: [0, 0, 0, 9, 0, 0, 8, 0, 0, 0], backgroundColor: colors.hth, borderRadius: 4, barPercentage: 0.6 },
-      { label: 'Build New (Your Innovation)', data: [0, 0, 0, 0, 0, 0, 0, 10, 10, 10], backgroundColor: colors.micro, borderRadius: 4, barPercentage: 0.6 },
+      { label: 'Borrow from Alpha', data: [8, 9, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: C.alpha, borderRadius: 4, barPercentage: 0.6 },
+      { label: 'Borrow from Acton', data: [0, 0, 9, 0, 9, 7, 0, 0, 0, 0], backgroundColor: C.acton, borderRadius: 4, barPercentage: 0.6 },
+      { label: 'Borrow from HTH', data: [0, 0, 0, 9, 0, 0, 8, 0, 0, 0], backgroundColor: C.hth, borderRadius: 4, barPercentage: 0.6 },
+      { label: 'Build New (Your Innovation)', data: [0, 0, 0, 0, 0, 0, 0, 10, 10, 10], backgroundColor: C.micro, borderRadius: 4, barPercentage: 0.6 },
     ]
   },
   options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    scales: { x: { max: 10, stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false }, ticks: { display: false } }, y: { stacked: true, grid: { display: false }, border: { display: false } } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// ============================================================
+// DAILY SCHEDULES (NEW)
+// ============================================================
+const schedules = [
+  { name: 'Alpha School', tag: '6 hr day', color: C.alpha,
+    blocks: [
+      { label: 'Morning Kickoff', time: '8:30–8:45', pct: 4, color: '#3a6ab8' },
+      { label: 'AI Academic Block', time: '8:45–10:45', pct: 33, color: C.alpha },
+      { label: 'Q Breaks', time: 'Every 20–30 min', pct: 5, color: '#5a9ae8' },
+      { label: 'Life Skills Workshops', time: '11:00–2:30', pct: 48, color: '#38c8b0' },
+      { label: 'Wrap-Up', time: '2:30–3:00', pct: 10, color: '#3a6ab8' },
+    ]},
+  { name: 'Acton Academy', tag: '7 hr day', color: C.acton,
+    blocks: [
+      { label: 'Morning Launch', time: '8:00–8:30', pct: 7, color: '#2a9880' },
+      { label: 'Core Skills (Self-Paced)', time: '8:30–10:30', pct: 28, color: C.acton },
+      { label: 'Socratic Discussion', time: '10:30–11:15', pct: 11, color: '#e8a838' },
+      { label: 'Quest / PBL', time: '11:15–2:00', pct: 36, color: '#e05878' },
+      { label: 'PE / Free Time', time: '2:00–2:45', pct: 11, color: '#5a9ae8' },
+      { label: 'Closing Circle', time: '2:45–3:00', pct: 7, color: '#2a9880' },
+    ]},
+  { name: 'High Tech High', tag: '7 hr day', color: C.hth,
+    blocks: [
+      { label: 'Advisory', time: '8:30–9:00', pct: 7, color: '#b04060' },
+      { label: 'Humanities Project Block', time: '9:00–11:00', pct: 29, color: C.hth },
+      { label: 'Lunch', time: '11:00–11:45', pct: 10, color: '#555568' },
+      { label: 'STEM Project Block', time: '11:45–1:45', pct: 29, color: C.alpha },
+      { label: 'Electives / Studio', time: '1:45–3:00', pct: 18, color: '#9868e8' },
+      { label: 'Exhibition Prep', time: '3:00–3:30', pct: 7, color: '#b04060' },
+    ]},
+  { name: 'Khan Lab School', tag: '7 hr day', color: C.khan,
+    blocks: [
+      { label: 'Morning Meeting', time: '8:30–9:00', pct: 7, color: '#7848b8' },
+      { label: 'Math (Mastery)', time: '9:00–10:15', pct: 18, color: C.khan },
+      { label: 'ELA (Mastery)', time: '10:15–11:30', pct: 18, color: '#b888f8' },
+      { label: 'Lunch / Recess', time: '11:30–12:15', pct: 10, color: '#555568' },
+      { label: 'Project Time', time: '12:15–2:15', pct: 29, color: C.hth },
+      { label: 'Electives', time: '2:15–3:15', pct: 14, color: C.acton },
+      { label: 'Reflection', time: '3:15–3:30', pct: 4, color: '#7848b8' },
+    ]},
+  { name: 'Your Academy (Proposed)', tag: '7.5 hr day', color: C.micro,
+    blocks: [
+      { label: 'Morning Circle', time: '8:00–8:30', pct: 6, color: '#b88828' },
+      { label: 'Academic Core (AI + Human)', time: '8:30–10:30', pct: 26, color: C.alpha },
+      { label: 'Break / Movement', time: '10:30–10:45', pct: 3, color: '#555568' },
+      { label: 'Applied Studio', time: '10:45–12:30', pct: 23, color: C.hth },
+      { label: 'Lunch', time: '12:30–1:15', pct: 9, color: '#555568' },
+      { label: 'Human Development', time: '1:15–2:15', pct: 13, color: C.acton },
+      { label: 'Studio / Project Work', time: '2:15–3:15', pct: 13, color: C.khan },
+      { label: 'Closing Reflection', time: '3:15–3:30', pct: 7, color: C.micro },
+    ]},
+];
+
+const scheduleGrid = document.getElementById('scheduleGrid');
+schedules.forEach(sch => {
+  const row = document.createElement('div');
+  row.className = 'schedule-row';
+  row.innerHTML = `
+    <div class="schedule-school-label">
+      <h3>${sch.name}</h3>
+      <div class="sch-tag">${sch.tag}</div>
+    </div>
+    <div>
+      <div class="timeline">
+        ${sch.blocks.map(b => `<div class="time-block" style="flex:${b.pct};background:${b.color}"><span class="block-label">${b.label}</span><span class="block-time">${b.time}</span></div>`).join('')}
+      </div>
+    </div>`;
+  scheduleGrid.appendChild(row);
+});
+
+// Time Allocation Chart
+new Chart(document.getElementById('timeAllocChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Alpha', 'Acton', 'High Tech High', 'Khan Lab', 'Your Academy'],
+    datasets: [
+      { label: 'Core Academics', data: [33, 28, 0, 36, 26], backgroundColor: C.alpha, borderRadius: 4 },
+      { label: 'Project / PBL', data: [0, 36, 58, 29, 36], backgroundColor: C.hth, borderRadius: 4 },
+      { label: 'Life Skills / Human Dev', data: [48, 11, 7, 0, 13], backgroundColor: C.acton, borderRadius: 4 },
+      { label: 'Discussion / Socratic', data: [0, 11, 0, 0, 6], backgroundColor: C.micro, borderRadius: 4 },
+      { label: 'Electives / Studio', data: [0, 0, 18, 14, 0], backgroundColor: C.khan, borderRadius: 4 },
+      { label: 'Transitions / Other', data: [19, 14, 17, 21, 19], backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
     scales: {
-      x: { max: 10, stacked: true, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false }, ticks: { display: false } },
-      y: { stacked: true, grid: { display: false }, border: { display: false } }
+      x: { stacked: true, grid: { display: false }, border: { display: false } },
+      y: { stacked: true, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false }, ticks: { callback: v => v + '%' } }
     },
     plugins: { legend: { position: 'bottom' } }
   }
 });
+
+// ============================================================
+// METHODOLOGIES (NEW)
+// ============================================================
+const methods = [
+  { num: '01', icon: '◎', bg: C.alphaA, ic: C.alpha, title: 'Mastery-Based Learning',
+    desc: 'Students advance only when they demonstrate true proficiency in a concept — not when the calendar or their age says to move on. Directly addresses compounding knowledge gaps.',
+    used: 'Alpha School, Khan Lab School' },
+  { num: '02', icon: '⟡', bg: C.actonA, ic: C.acton, title: 'Learner-Driven Education',
+    desc: 'Students take ownership of their learning — setting goals, tracking progress, making choices about how and what they learn. Adults guide through questions and environment design, not lectures.',
+    used: 'Acton Academy' },
+  { num: '03', icon: '⬡', bg: C.hthA, ic: C.hth, title: 'Project-Based Learning (PBL)',
+    desc: 'Students learn academic content by working on extended, interdisciplinary projects that solve real problems and produce real products for real audiences.',
+    used: 'High Tech High, Acton (Quests)' },
+  { num: '04', icon: '◈', bg: C.khanA, ic: C.khan, title: 'Adaptive / AI-Driven Learning',
+    desc: 'Technology personalizes the academic experience in real time — adjusting difficulty, pacing, and content to each student. Identifies gaps and delivers targeted instruction continuously.',
+    used: 'Alpha School, Khan Lab School' },
+  { num: '05', icon: '◇', bg: C.microA, ic: C.micro, title: 'Socratic Method',
+    desc: 'Learning through guided questioning rather than direct instruction. The teacher asks increasingly precise questions that lead students to discover understanding themselves.',
+    used: 'Acton Academy' },
+  { num: '06', icon: '□', bg: 'rgba(255,255,255,0.05)', ic: '#aaa', title: 'Microschool Model',
+    desc: 'A structural format — small learning environments, typically under 150 students, with mixed-age groupings and high flexibility in curriculum, schedule, and space.',
+    used: 'Your Academy (likely structure)' },
+  { num: '07', icon: '◐', bg: 'rgba(255,255,255,0.05)', ic: '#aaa', title: 'Hybrid Model',
+    desc: 'Combines multiple approaches: adaptive software for core academics, hands-on studio work with human mentors, Socratic dialogue for personal growth. Most innovative schools today are hybrids.',
+    used: 'Your Academy (target approach)' },
+];
+
+const methodGrid = document.getElementById('methodGrid');
+methods.forEach(m => {
+  const card = document.createElement('div');
+  card.className = 'method-card';
+  card.innerHTML = `
+    <div class="method-number">${m.num}</div>
+    <div class="method-icon" style="background:${m.bg};color:${m.ic}">${m.icon}</div>
+    <h3>${m.title}</h3>
+    <p>${m.desc}</p>
+    <div class="used-by">Used by: <span>${m.used}</span></div>`;
+  methodGrid.appendChild(card);
+});
+
+// ============================================================
+// PA REGULATIONS (NEW)
+// ============================================================
+const regulations = [
+  { title: 'School Registration (PDE)', status: 'pending', items: [
+    { text: 'Register with PA Dept. of Education as a private academic school', done: false },
+    { text: 'File Form PDE-4075 (Affidavit of Private School)', done: false },
+    { text: 'Submit annually by November 15', done: false },
+  ]},
+  { title: 'Mandatory Subjects (Act 90)', status: 'researched', items: [
+    { text: 'English (including spelling, reading, writing)', done: true },
+    { text: 'Mathematics', done: true },
+    { text: 'Science', done: true },
+    { text: 'Social Studies (civics, history, geography)', done: true },
+    { text: 'Music and art', done: true },
+    { text: 'Physical education and health', done: false },
+  ]},
+  { title: 'Teacher Qualifications', status: 'pending', items: [
+    { text: 'PA private schools do not require state-certified teachers', done: false },
+    { text: 'Determine qualifications policy for "guides" vs. subject-matter experts', done: false },
+    { text: 'Research background check requirements (Act 153)', done: false },
+  ]},
+  { title: 'Accreditation', status: 'pending', items: [
+    { text: 'Accreditation is not legally required but affects college admissions credibility', done: false },
+    { text: 'Research Cognia (formerly AdvancED) — Alpha School is Cognia-accredited', done: false },
+    { text: 'Research Middle States Association accreditation pathway', done: false },
+    { text: 'Evaluate timeline and cost for accreditation', done: false },
+  ]},
+  { title: 'Health & Safety Compliance', status: 'not-started', items: [
+    { text: 'Fire safety inspections and building codes', done: false },
+    { text: 'Student immunization records', done: false },
+    { text: 'Emergency preparedness plan', done: false },
+    { text: 'ADA accessibility requirements', done: false },
+  ]},
+  { title: 'Business & Legal Structure', status: 'not-started', items: [
+    { text: 'Determine entity type (LLC, non-profit 501(c)(3), etc.)', done: false },
+    { text: 'Zoning approval for school use', done: false },
+    { text: 'Insurance (liability, property, professional)', done: false },
+    { text: 'Student enrollment agreements and policies', done: false },
+  ]},
+];
+
+const regGrid = document.getElementById('regGrid');
+regulations.forEach(r => {
+  const card = document.createElement('div');
+  card.className = 'reg-card';
+  card.innerHTML = `
+    <h3>${r.title}</h3>
+    <div class="reg-status ${r.status}">${r.status.replace('-', ' ')}</div>
+    <ul class="reg-items">
+      ${r.items.map(item => `<li><span class="check ${item.done ? 'done' : 'todo'}">${item.done ? '✓' : '○'}</span><span>${item.text}</span></li>`).join('')}
+    </ul>`;
+  regGrid.appendChild(card);
+});
+
+// ============================================================
+// COMPETITIVE LANDSCAPE (NEW)
+// ============================================================
+const competitors = [
+  { name: 'Scranton Preparatory School', type: 'Private (Jesuit)', grades: '9–12', tuition: '~$14k', focus: 'Traditional college prep, religious education', threat: 'indirect' },
+  { name: 'Wyoming Seminary', type: 'Private (Independent)', grades: 'PreK–PG', tuition: '~$32k (day)', focus: 'Traditional college prep, boarding option', threat: 'indirect' },
+  { name: 'Holy Cross High School', type: 'Private (Catholic)', grades: '9–12', tuition: '~$9k', focus: 'Faith-based college prep', threat: 'indirect' },
+  { name: 'Abington Heights SD', type: 'Public (Top-ranked)', grades: 'K–12', tuition: 'Free', focus: 'Strong academics, competitive with private', threat: 'indirect' },
+  { name: 'PA Cyber Charter School', type: 'Cyber Charter', grades: 'K–12', tuition: 'Free', focus: 'Fully online, self-paced', threat: 'indirect' },
+  { name: 'Local Homeschool Co-ops', type: 'Homeschool', grades: 'Varies', tuition: 'Low', focus: 'Parent-led, flexible', threat: 'indirect' },
+  { name: '(No direct competitor found)', type: '—', grades: '6–12', tuition: '—', focus: 'Applied learning + AI + arts + intrapersonal', threat: 'direct' },
+];
+
+const compBody = document.getElementById('compBody');
+competitors.forEach(c => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${c.name}</td><td>${c.type}</td><td>${c.grades}</td><td>${c.tuition}</td><td>${c.focus}</td>
+    <td><span class="comp-badge ${c.threat}">${c.threat}</span></td>`;
+  compBody.appendChild(row);
+});
+
+// Market Positioning
+new Chart(document.getElementById('positionChart'), {
+  type: 'bubble',
+  data: {
+    datasets: [
+      { label: 'Scranton Prep', data: [{ x: 2, y: 7, r: 14 }], backgroundColor: 'rgba(255,255,255,0.15)', borderColor: '#888', borderWidth: 1 },
+      { label: 'Wyoming Seminary', data: [{ x: 3, y: 8, r: 16 }], backgroundColor: 'rgba(255,255,255,0.15)', borderColor: '#888', borderWidth: 1 },
+      { label: 'Holy Cross', data: [{ x: 1.5, y: 5, r: 10 }], backgroundColor: 'rgba(255,255,255,0.15)', borderColor: '#888', borderWidth: 1 },
+      { label: 'PA Cyber Charter', data: [{ x: 7, y: 3, r: 12 }], backgroundColor: 'rgba(255,255,255,0.15)', borderColor: '#888', borderWidth: 1 },
+      { label: 'Your Academy', data: [{ x: 9, y: 9, r: 14 }], backgroundColor: C.microA.replace('0.15','0.6'), borderColor: C.micro, borderWidth: 2 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { title: { display: true, text: 'Innovation →', font: { size: 11 } }, max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
+      y: { title: { display: true, text: 'Personalization →', font: { size: 11 } }, max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } }
+    },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// Differentiation Gaps
+new Chart(document.getElementById('gapChart'), {
+  type: 'bar',
+  data: {
+    labels: ['AI/Tech Curriculum', 'Intrapersonal Program', 'Applied Arts Studio', 'Music Production', 'Mastery-Based Core', 'Individualized Paths'],
+    datasets: [
+      { label: 'Available Locally', data: [1, 1, 2, 1, 1, 2], backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4 },
+      { label: 'Your Academy (Planned)', data: [9, 9.5, 9, 8, 8, 9], backgroundColor: C.micro, borderRadius: 4 },
+    ]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { max: 10, grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false } },
+      y: { grid: { display: false }, border: { display: false } }
+    },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// Initial chart color sync on load
+setTimeout(() => updateAllCharts(), 100);
 </script>
 </body>
 </html>
